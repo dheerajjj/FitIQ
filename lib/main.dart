@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'coach.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -111,6 +112,8 @@ class _FitShellState extends State<FitShell> {
 
   Widget _train() => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
     _heading('Train smarter', 'Track every set. Build consistency.'),
+    const CoachPanel(),
+    const SizedBox(height: 18),
     for (final exercise in ['Squats', 'Push-ups', 'Lunges', 'Dumbbell rows', 'Shoulder press'])
       _tile(exercise, 'Record completed repetitions', Icons.fitness_center,
         onTap: () => _log('workout', exercise, 'Repetitions')),
@@ -187,5 +190,108 @@ class _FitShellState extends State<FitShell> {
         NavigationDestination(icon: Icon(Icons.insights_outlined), label: 'Progress'),
         NavigationDestination(icon: Icon(Icons.person_outline), label: 'Profile'),
       ]),
+  );
+}
+
+/// Private-by-default guidance. Python is contacted only if an HTTPS endpoint
+/// was explicitly provided at build time; otherwise it works fully offline.
+class CoachPanel extends StatefulWidget {
+  const CoachPanel({super.key});
+  @override
+  State<CoachPanel> createState() => _CoachPanelState();
+}
+
+class _CoachPanelState extends State<CoachPanel> {
+  final reps = TextEditingController(text: '12');
+  final target = TextEditingController(text: '12');
+  final weight = TextEditingController(text: '10');
+  double effort = 6;
+  double soreness = 2;
+  CoachAdvice? advice;
+  bool busy = false;
+
+  @override
+  void dispose() {
+    reps.dispose();
+    target.dispose();
+    weight.dispose();
+    super.dispose();
+  }
+
+  Future<void> _recommend() async {
+    final completed = int.tryParse(reps.text);
+    final planned = int.tryParse(target.text);
+    final kg = double.tryParse(weight.text);
+    if (completed == null || planned == null || kg == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter valid numbers for reps and weight')));
+      return;
+    }
+    final input = CoachInput(completed, planned, effort.round(),
+      soreness.round(), kg);
+    try {
+      input.validate();
+    } on ArgumentError {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Check session values and try again')));
+      return;
+    }
+    setState(() => busy = true);
+    final result = await CoachService.recommend(input);
+    if (!mounted) return;
+    setState(() { advice = result; busy = false; });
+  }
+
+  @override
+  Widget build(BuildContext context) => Card(
+    color: surface,
+    child: Padding(padding: const EdgeInsets.all(16), child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('FITIQ COACH', style: TextStyle(color: accent,
+          letterSpacing: 2, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        const Text('Plan your next set', style: TextStyle(
+          fontSize: 21, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
+        Row(children: [
+          Expanded(child: TextField(controller: reps,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: 'Completed reps'))),
+          const SizedBox(width: 10),
+          Expanded(child: TextField(controller: target,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: 'Target reps'))),
+          const SizedBox(width: 10),
+          Expanded(child: TextField(controller: weight,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(labelText: 'Weight kg'))),
+        ]),
+        const SizedBox(height: 12),
+        Text('Effort: ${effort.round()} / 10'),
+        Slider(value: effort, min: 1, max: 10, divisions: 9,
+          label: '${effort.round()}', onChanged: (v) => setState(() => effort = v)),
+        Text('Soreness: ${soreness.round()} / 10'),
+        Slider(value: soreness, min: 0, max: 10, divisions: 10,
+          label: '${soreness.round()}',
+          onChanged: (v) => setState(() => soreness = v)),
+        SizedBox(width: double.infinity, child: FilledButton.icon(
+          onPressed: busy ? null : _recommend,
+          icon: const Icon(Icons.auto_awesome),
+          label: Text(busy ? 'Checking...' : 'Get next-set guidance'))),
+        if (advice != null) ...[
+          const SizedBox(height: 12),
+          Text(advice!.action.toUpperCase(), style: const TextStyle(
+            color: accent, fontWeight: FontWeight.bold)),
+          Text('Suggested load: ${advice!.weightKg} kg'),
+          Text(advice!.reason),
+          Text(advice!.fromPython ? 'Python coach (HTTPS)' : 'Private offline coach',
+            style: const TextStyle(color: Colors.white70, fontSize: 12)),
+        ],
+        const SizedBox(height: 8),
+        const Text('General fitness guidance only; stop if you feel pain.',
+          style: TextStyle(color: Colors.white70, fontSize: 12)),
+      ],
+    )),
   );
 }

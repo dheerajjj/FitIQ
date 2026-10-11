@@ -87,19 +87,6 @@ class _FitShellState extends State<FitShell> {
       Text(subtitle, style: const TextStyle(color: Colors.white70)),
     ]));
 
-  Widget _metric(String label, String value, IconData icon) => Container(
-    padding: const EdgeInsets.all(18),
-    decoration: BoxDecoration(color: surface,
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: Colors.white.withValues(alpha: 0.06))),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Icon(icon, color: accent, size: 23),
-      const SizedBox(height: 14),
-      Text(value, style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w900)),
-      Text(label, style: const TextStyle(color: Colors.white60,
-        fontSize: 11, letterSpacing: 1.5)),
-    ]));
-  
   Widget _today() => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
     _heading('Your daily edge', 'Small steps. Stronger every day.'),
     PremiumHero(name: name, goal: goal, onStart: () => setState(() => tab = 1)),

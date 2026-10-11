@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'coach.dart';
 import 'welcome.dart';
+import 'premium.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -74,12 +75,10 @@ class _FitShellState extends State<FitShell> {
     await _save();
   }
 
-  Widget _tile(String title, String subtitle, IconData icon, {VoidCallback? onTap, Widget? trailing}) =>
-    Card(color: surface, child: ListTile(
-      leading: CircleAvatar(backgroundColor: accent.withValues(alpha: 0.13),
-        child: Icon(icon, color: accent)),
-      title: Text(title), subtitle: Text(subtitle), onTap: onTap,
-      trailing: trailing ?? const Icon(Icons.chevron_right)));
+  Widget _tile(String title, String subtitle, IconData icon,
+      {VoidCallback? onTap, Widget? trailing}) =>
+    PremiumAction(title: title, subtitle: subtitle, icon: icon,
+      onTap: onTap, trailing: trailing);
 
   Widget _heading(String title, String subtitle) => Padding(
     padding: const EdgeInsets.only(bottom: 20),
@@ -102,28 +101,29 @@ class _FitShellState extends State<FitShell> {
     ]));
   
   Widget _today() => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    _heading('Hello, $name', 'A stronger you starts today.'),
-    Container(width: double.infinity, padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(24),
-        gradient: const LinearGradient(colors: [Color(0xFF314C34), Color(0xFF172B36)])),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('YOUR FOCUS', style: TextStyle(color: accent, letterSpacing: 2)),
-        const SizedBox(height: 12),
-        Text(goal, style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 20),
-        FilledButton(onPressed: () => setState(() => tab = 1),
-          child: const Text('Start training')),
-      ])),
-    const SizedBox(height: 20),
+    _heading('Your daily edge', 'Small steps. Stronger every day.'),
+    PremiumHero(name: name, goal: goal, onStart: () => setState(() => tab = 1)),
+    const SizedBox(height: 22),
+    const Text('TODAY AT A GLANCE', style: TextStyle(color: accent,
+      letterSpacing: 2, fontWeight: FontWeight.w800, fontSize: 11)),
+    const SizedBox(height: 12),
     Row(children: [
-      Expanded(child: _metric('REPS', '${_total('workout')}', Icons.fitness_center)),
-      const SizedBox(width: 10),
-      Expanded(child: _metric('WATER', '${_total('water')} ml', Icons.water_drop)),
+      Expanded(child: PremiumMetric(label: 'Total reps',
+        value: '${_total('workout')}', icon: Icons.fitness_center)),
+      const SizedBox(width: 12),
+      Expanded(child: PremiumMetric(label: 'Water (ml)',
+        value: '${_total('water')}', icon: Icons.water_drop)),
     ]),
-    const SizedBox(height: 14),
-    _tile('Total repetitions', '${_total('workout')} recorded', Icons.fitness_center),
-    _tile('Water logged', '${_total('water')} ml', Icons.water_drop,
+    const SizedBox(height: 24),
+    const Text('QUICK ACTIONS', style: TextStyle(color: accent,
+      letterSpacing: 2, fontWeight: FontWeight.w800, fontSize: 11)),
+    const SizedBox(height: 12),
+    _tile('Log water', 'Keep hydration on track', Icons.water_drop_outlined,
       onTap: () => _log('water', 'Water', 'Millilitres')),
+    _tile('Record a workout', 'Capture your training sets', Icons.fitness_center,
+      onTap: () => setState(() => tab = 1)),
+    _tile('Review progress', 'Your complete activity timeline', Icons.show_chart,
+      onTap: () => setState(() => tab = 3)),
   ]);
 
   Widget _train() => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

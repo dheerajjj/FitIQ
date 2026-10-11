@@ -3,6 +3,7 @@ import 'coach.dart';
 import 'welcome.dart';
 import 'premium.dart';
 import 'exercise_studio.dart';
+import 'nutrition_dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -128,11 +129,13 @@ class _FitShellState extends State<FitShell> {
   ]);
 
   Widget _nutrition() => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    _heading('Fuel your body', 'Simple, manual nutrition tracking.'),
-    _tile('Calories', '${_total('calories')} kcal logged', Icons.restaurant,
-      onTap: () => _log('calories', 'Calories', 'kcal')),
-    _tile('Protein', '${_total('protein')} g logged', Icons.egg,
-      onTap: () => _log('protein', 'Protein', 'Grams')),
+    _heading('Fuel your body', 'Your nutrition, beautifully organized.'),
+    NutritionDashboard(
+      calories: _total('calories'), protein: _total('protein'),
+      water: _total('water'),
+      onCalories: () => _log('calories', 'Calories', 'kcal'),
+      onProtein: () => _log('protein', 'Protein', 'Grams'),
+      onWater: () => _log('water', 'Water', 'Millilitres')),
   ]);
 
   Widget _progress() => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

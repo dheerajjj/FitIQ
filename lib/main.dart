@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'coach.dart';
 import 'welcome.dart';
 import 'premium.dart';
+import 'exercise_studio.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -113,13 +114,17 @@ class _FitShellState extends State<FitShell> {
       onTap: () => setState(() => tab = 3)),
   ]);
 
+  void _recordSet(String exercise, int reps) {
+    setState(() => logs.insert(0, {'type': 'workout', 'title': exercise,
+      'amount': reps, 'date': DateTime.now().toIso8601String()}));
+    _save();
+  }
+
   Widget _train() => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    _heading('Train smarter', 'Track every set. Build consistency.'),
+    _heading('Train smarter', 'Body-part training and guided sessions.'),
+    ExerciseStudio(onLog: _recordSet),
+    const SizedBox(height: 24),
     const CoachPanel(),
-    const SizedBox(height: 18),
-    for (final exercise in ['Squats', 'Push-ups', 'Lunges', 'Dumbbell rows', 'Shoulder press'])
-      _tile(exercise, 'Record completed repetitions', Icons.fitness_center,
-        onTap: () => _log('workout', exercise, 'Repetitions')),
   ]);
 
   Widget _nutrition() => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

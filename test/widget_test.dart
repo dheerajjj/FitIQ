@@ -14,7 +14,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('enterFitIQ')));
     await tester.pumpAndSettle();
-    expect(find.text('Hello, Test Athlete'), findsOneWidget);
+    expect(find.text('Make today count, Test Athlete.'), findsOneWidget);
     await tester.tap(find.text('Train'));
     await tester.pumpAndSettle();
     expect(find.text('Train smarter'), findsOneWidget);
@@ -54,7 +54,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Today'));
     await tester.pumpAndSettle();
-    expect(find.text('Hello, Updated'), findsOneWidget);
+    expect(find.text('Make today count, Updated.'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

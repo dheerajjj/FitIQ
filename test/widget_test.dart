@@ -1,18 +1,57 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fitiq/main.dart';
 
 void main() {
-  testWidgets('main tabs are accessible', (tester) async {
+  testWidgets('first launch has local onboarding and working tabs', (tester) async {
     SharedPreferences.setMockInitialValues({});
     await tester.pumpWidget(const FitIQ());
     await tester.pumpAndSettle();
-    expect(find.text('FITIQ'), findsOneWidget);
+    expect(find.text('Make every\nrep count.'), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('profileName')), 'Test Athlete');
+    await tester.tap(find.byKey(const Key('enterFitIQ')));
+    await tester.pumpAndSettle();
+    expect(find.text('Hello, Test Athlete'), findsOneWidget);
     await tester.tap(find.text('Train'));
     await tester.pumpAndSettle();
     expect(find.text('Train smarter'), findsOneWidget);
     await tester.tap(find.text('Nutrition'));
     await tester.pumpAndSettle();
     expect(find.text('Fuel your body'), findsOneWidget);
+  });
+
+  testWidgets('logging dialog closes without lifecycle assertion', (tester) async {
+    SharedPreferences.setMockInitialValues({'onboarded': true, 'name': 'Tester'});
+    await tester.pumpWidget(const FitIQ());
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('enterFitIQ')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Water logged'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, '250');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(find.text('250 ml'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('profile edit and tab switching preserve widget tree', (tester) async {
+    SharedPreferences.setMockInitialValues({'onboarded': true, 'name': 'Tester'});
+    await tester.pumpWidget(const FitIQ());
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('enterFitIQ')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Profile').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Name'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'Updated');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Today'));
+    await tester.pumpAndSettle();
+    expect(find.text('Hello, Updated'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

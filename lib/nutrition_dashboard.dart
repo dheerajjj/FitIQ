@@ -91,5 +91,5 @@ class NutritionDashboard extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               child: LinearProgressIndicator(value: progress, minHeight: 10,
                 backgroundColor: Colors.white12, color: nutritionLime))),
-        ])))));
+        ]))));
 }

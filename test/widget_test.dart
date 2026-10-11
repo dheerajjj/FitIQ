@@ -27,12 +27,12 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('enterFitIQ')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Water logged'));
+    await tester.tap(find.text('Log water'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, '250');
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
-    expect(find.text('250 ml'), findsWidgets);
+    expect(find.text('250'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 

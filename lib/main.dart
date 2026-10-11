@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'coach.dart';
+import 'welcome.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(const FitIQ());
-const bg = Color(0xFF0A101B);
-const surface = Color(0xFF172131);
+const bg = Color(0xFF0B111C);
+const surface = Color(0xFF192536);
 const accent = Color(0xFFB4F36A);
 
 class FitIQ extends StatelessWidget {
@@ -15,7 +16,10 @@ class FitIQ extends StatelessWidget {
     title: 'FitIQ', debugShowCheckedModeBanner: false,
     theme: ThemeData(useMaterial3: true, brightness: Brightness.dark,
       scaffoldBackgroundColor: bg,
-      colorScheme: ColorScheme.fromSeed(seedColor: accent, brightness: Brightness.dark)),
+      colorScheme: ColorScheme.fromSeed(seedColor: accent, brightness: Brightness.dark),
+      pageTransitionsTheme: const PageTransitionsTheme(builders: {
+        TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+      })),
     home: const FitShell(),
   );
 }
@@ -28,6 +32,8 @@ class FitShell extends StatefulWidget {
 class _FitShellState extends State<FitShell> {
   int tab = 0;
   bool loading = true;
+  bool entered = false;
+  bool onboarded = false;
   String name = 'Athlete';
   String goal = 'Build strength';
   List<Map<String, dynamic>> logs = [];
@@ -43,7 +49,9 @@ class _FitShellState extends State<FitShell> {
     } catch (_) { restored = []; }
     if (!mounted) return;
     setState(() { logs = restored; name = prefs.getString('name') ?? 'Athlete';
-      goal = prefs.getString('goal') ?? 'Build strength'; loading = false; });
+      goal = prefs.getString('goal') ?? 'Build strength';
+      onboarded = prefs.getBool('onboarded') ?? false;
+      loading = false; });
   }
 
   Future<void> _save() async {
@@ -57,20 +65,9 @@ class _FitShellState extends State<FitShell> {
       .fold<int>(0, (sum, e) => sum + (e['amount'] as int));
 
   Future<void> _log(String type, String title, String unit) async {
-    final controller = TextEditingController();
-    final value = await showDialog<int>(context: context, builder: (ctx) => AlertDialog(
-      title: Text('Log $title'),
-      content: TextField(controller: controller, autofocus: true,
-        keyboardType: TextInputType.number, decoration: InputDecoration(labelText: unit)),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-        FilledButton(onPressed: () {
-          final n = int.tryParse(controller.text);
-          if (n != null && n > 0 && n <= 100000) Navigator.pop(ctx, n);
-        }, child: const Text('Save')),
-      ],
-    ));
-    controller.dispose();
+    final raw = await showDialog<String>(context: context,
+      builder: (_) => EntryDialog(title: 'Log $title', label: unit, numeric: true));
+    final value = raw == null ? null : int.tryParse(raw);
     if (value == null || !mounted) return;
     setState(() => logs.insert(0, {'type': type, 'title': title,
       'amount': value, 'date': DateTime.now().toIso8601String()}));
@@ -91,6 +88,19 @@ class _FitShellState extends State<FitShell> {
       Text(subtitle, style: const TextStyle(color: Colors.white70)),
     ]));
 
+  Widget _metric(String label, String value, IconData icon) => Container(
+    padding: const EdgeInsets.all(18),
+    decoration: BoxDecoration(color: surface,
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: Colors.white.withValues(alpha: 0.06))),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Icon(icon, color: accent, size: 23),
+      const SizedBox(height: 14),
+      Text(value, style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w900)),
+      Text(label, style: const TextStyle(color: Colors.white60,
+        fontSize: 11, letterSpacing: 1.5)),
+    ]));
+  
   Widget _today() => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
     _heading('Hello, $name', 'A stronger you starts today.'),
     Container(width: double.infinity, padding: const EdgeInsets.all(24),
@@ -105,6 +115,12 @@ class _FitShellState extends State<FitShell> {
           child: const Text('Start training')),
       ])),
     const SizedBox(height: 20),
+    Row(children: [
+      Expanded(child: _metric('REPS', '${_total('workout')}', Icons.fitness_center)),
+      const SizedBox(width: 10),
+      Expanded(child: _metric('WATER', '${_total('water')} ml', Icons.water_drop)),
+    ]),
+    const SizedBox(height: 14),
     _tile('Total repetitions', '${_total('workout')} recorded', Icons.fitness_center),
     _tile('Water logged', '${_total('water')} ml', Icons.water_drop,
       onTap: () => _log('water', 'Water', 'Millilitres')),
@@ -141,16 +157,9 @@ class _FitShellState extends State<FitShell> {
   Widget _profile() => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
     _heading('Your space', 'Make FitIQ yours.'),
     _tile('Name', name, Icons.person, onTap: () async {
-      final controller = TextEditingController(text: name);
-      final result = await showDialog<String>(context: context, builder: (ctx) => AlertDialog(
-        title: const Text('Display name'),
-        content: TextField(controller: controller, maxLength: 30),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-            child: const Text('Save')),
-        ]));
-      controller.dispose();
+      final result = await showDialog<String>(context: context,
+        builder: (_) => EntryDialog(title: 'Display name',
+          label: 'Your name', initial: name));
       if (result != null && result.isNotEmpty && mounted) {
         setState(() => name = result); await _save();
       }
@@ -163,6 +172,8 @@ class _FitShellState extends State<FitShell> {
             SimpleDialogOption(onPressed: () => Navigator.pop(ctx, item), child: Text(item))]));
       if (result != null && mounted) { setState(() => goal = result); await _save(); }
     }),
+    _tile('Switch profile', 'Return to your local welcome screen', Icons.logout,
+      onTap: () => setState(() => entered = false)),
     _tile('Clear activity', 'Delete all logged entries', Icons.delete_forever, onTap: () async {
       final confirmed = await showDialog<bool>(context: context,
         builder: (ctx) => AlertDialog(title: const Text('Delete all activity?'),
@@ -174,14 +185,31 @@ class _FitShellState extends State<FitShell> {
     }),
   ]);
 
-  @override Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('FITIQ',
-      style: TextStyle(color: accent, letterSpacing: 3, fontWeight: FontWeight.w900))),
+  @override Widget build(BuildContext context) => loading
+    ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+    : !entered ? WelcomeScreen(savedName: name, returning: onboarded,
+        onContinue: (value) async {
+          setState(() { name = value; entered = true; onboarded = true; });
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool('onboarded', true);
+          await _save();
+        })
+    : Scaffold(
+    appBar: AppBar(backgroundColor: bg, surfaceTintColor: Colors.transparent,
+      title: const Row(children: [Icon(Icons.bolt_rounded, color: accent),
+        SizedBox(width: 6), Text('FITIQ', style: TextStyle(
+          color: accent, letterSpacing: 3, fontWeight: FontWeight.w900))]),
+      actions: [IconButton(tooltip: 'Profile', icon: const Icon(Icons.account_circle_outlined),
+        onPressed: () => setState(() => tab = 4))]),
     body: loading ? const Center(child: CircularProgressIndicator())
-      : SafeArea(child: ListView(padding: const EdgeInsets.all(18), children: [
-        switch (tab) { 0 => _today(), 1 => _train(), 2 => _nutrition(),
-          3 => _progress(), _ => _profile() }
-      ])),
+      : SafeArea(child: AnimatedSwitcher(duration: const Duration(milliseconds: 280),
+        transitionBuilder: (child, animation) => FadeTransition(opacity: animation,
+          child: SlideTransition(position: Tween<Offset>(begin: const Offset(0.03, 0),
+            end: Offset.zero).animate(animation), child: child)),
+        child: ListView(key: ValueKey(tab), padding: const EdgeInsets.all(18), children: [
+          switch (tab) { 0 => _today(), 1 => _train(), 2 => _nutrition(),
+            3 => _progress(), _ => _profile() }
+        ]))),
     bottomNavigationBar: NavigationBar(selectedIndex: tab,
       onDestinationSelected: (i) => setState(() => tab = i), destinations: const [
         NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Today'),

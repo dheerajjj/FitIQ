@@ -4,12 +4,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fitiq/main.dart';
 
 void main() {
+  Future<void> setupScreen(WidgetTester tester) async {
+    await tester.binding.setSurfaceSize(const Size(440, 1000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+  }
+
   testWidgets('first launch has local onboarding and working tabs', (tester) async {
+    await setupScreen(tester);
     SharedPreferences.setMockInitialValues({});
     await tester.pumpWidget(const FitIQ());
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('profileName')), findsOneWidget);
     await tester.enterText(find.byKey(const Key('profileName')), 'Test Athlete');
+    await tester.ensureVisible(find.byKey(const Key('enterFitIQ')));
+    await tester.pumpAndSettle();
+    await tester.testTextInput.hide();
+    await tester.pumpAndSettle();
     await tester.ensureVisible(find.byKey(const Key('enterFitIQ')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('enterFitIQ')));
@@ -24,6 +34,7 @@ void main() {
   });
 
   testWidgets('logging dialog closes without lifecycle assertion', (tester) async {
+    await setupScreen(tester);
     SharedPreferences.setMockInitialValues({'onboarded': true, 'name': 'Tester'});
     await tester.pumpWidget(const FitIQ());
     await tester.pumpAndSettle();
@@ -40,6 +51,7 @@ void main() {
   });
 
   testWidgets('profile edit and tab switching preserve widget tree', (tester) async {
+    await setupScreen(tester);
     SharedPreferences.setMockInitialValues({'onboarded': true, 'name': 'Tester'});
     await tester.pumpWidget(const FitIQ());
     await tester.pumpAndSettle();

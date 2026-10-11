@@ -1,0 +1,1 @@
+# FitIQ Python intelligence package

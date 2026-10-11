@@ -8,8 +8,10 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     await tester.pumpWidget(const FitIQ());
     await tester.pumpAndSettle();
-    expect(find.text('Make every\nrep count.'), findsOneWidget);
+    expect(find.byKey(const Key('profileName')), findsOneWidget);
     await tester.enterText(find.byKey(const Key('profileName')), 'Test Athlete');
+    await tester.ensureVisible(find.byKey(const Key('enterFitIQ')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('enterFitIQ')));
     await tester.pumpAndSettle();
     expect(find.text('Hello, Test Athlete'), findsOneWidget);
@@ -27,6 +29,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('enterFitIQ')));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Log water'));
     await tester.tap(find.text('Log water'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, '250');

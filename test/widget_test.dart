@@ -18,7 +18,7 @@ void main() {
     await tester.enterText(find.byKey(const Key('profileName')), 'Test Athlete');
     await tester.ensureVisible(find.byKey(const Key('enterFitIQ')));
     await tester.pumpAndSettle();
-    await tester.testTextInput.hide();
+    tester.testTextInput.hide();
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.byKey(const Key('enterFitIQ')));
     await tester.pumpAndSettle();

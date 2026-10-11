@@ -2,8 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fitiq/main.dart';
+import 'package:fitiq/exercise_studio.dart';
 
 void main() {
+  test('exercise catalog covers major body areas', () {
+    for (final group in muscleGroups.where((group) => group != 'All')) {
+      expect(exerciseCatalog.any((exercise) => exercise.muscle == group), isTrue);
+    }
+    expect(exerciseCatalog.length, greaterThanOrEqualTo(18));
+  });
+
   Future<void> setupScreen(WidgetTester tester) async {
     await tester.binding.setSurfaceSize(const Size(440, 1000));
     addTearDown(() => tester.binding.setSurfaceSize(null));

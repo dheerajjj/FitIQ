@@ -41,7 +41,7 @@ class NutritionDashboard extends StatelessWidget {
               ])),
             SizedBox(width: 120, height: 120,
               child: TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0, end: (calories / calorieGoal).clamp(0, 1)),
+                tween: Tween(begin: 0, end: (calories / calorieGoal).clamp(0.0, 1.0).toDouble()),
                 duration: const Duration(milliseconds: 850),
                 builder: (context, value, _) => Stack(
                   alignment: Alignment.center, children: [
@@ -85,7 +85,7 @@ class NutritionDashboard extends StatelessWidget {
           ]),
           const SizedBox(height: 15),
           TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0, end: (value / target).clamp(0, 1)),
+            tween: Tween(begin: 0, end: (value / target).clamp(0.0, 1.0).toDouble()),
             duration: const Duration(milliseconds: 700),
             builder: (context, progress, _) => ClipRRect(
               borderRadius: BorderRadius.circular(10),

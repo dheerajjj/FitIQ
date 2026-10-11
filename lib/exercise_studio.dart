@@ -101,7 +101,7 @@ class _ExerciseStudioState extends State<ExerciseStudio> {
               label: Text(completed >= exercise.sets
                 ? 'Session complete' : 'Complete set · ${exercise.reps} reps'))),
           ]))),
-      )),
+      ),
     );
   }
 

@@ -34,41 +34,44 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     final entrance = CurvedAnimation(parent: _animation, curve: Curves.easeOutCubic);
     return Scaffold(
       backgroundColor: _ink,
-      body: SafeArea(child: LayoutBuilder(builder: (context, constraints) =>
-        SingleChildScrollView(child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: constraints.maxHeight),
-          child: Padding(padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
-            child: FadeTransition(opacity: entrance,
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+          child: FadeTransition(
+            opacity: entrance,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 const Row(children: [
                   Icon(Icons.bolt_rounded, color: _lime, size: 30),
                   SizedBox(width: 8),
                   Text('FITIQ', style: TextStyle(fontSize: 22,
                     fontWeight: FontWeight.w900, letterSpacing: 4, color: _lime)),
                 ]),
-                const SizedBox(height: 58),
+                const SizedBox(height: 52),
                 Center(child: Container(
-                  width: 220, height: 220,
-                  decoration: BoxDecoration(shape: BoxShape.circle,
-                    gradient: const RadialGradient(colors: [
-                      Color(0xFF365640), Color(0xFF172D2D), _ink
+                  width: 200, height: 200,
+                  decoration: const BoxDecoration(shape: BoxShape.circle,
+                    gradient: RadialGradient(colors: [
+                      Color(0xFF365640), Color(0xFF172D2D), _ink,
                     ])),
                   child: const Icon(Icons.monitor_heart_outlined,
-                    color: _lime, size: 104))),
-                const SizedBox(height: 46),
+                    color: _lime, size: 100),
+                )),
+                const SizedBox(height: 40),
                 Text(widget.returning ? 'WELCOME BACK' : 'WELCOME TO YOUR NEXT LEVEL',
                   style: const TextStyle(color: _lime, fontSize: 12,
                     letterSpacing: 2.5, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 12),
-                Text(widget.returning ? 'Ready for another\nstrong day?' :
-                  'Make every\nrep count.',
+                Text(widget.returning ? 'Ready for another\\nstrong day?' :
+                  'Make every\\nrep count.',
                   style: const TextStyle(fontSize: 42, height: 1.08,
                     fontWeight: FontWeight.w900, letterSpacing: -1.6)),
                 const SizedBox(height: 16),
                 const Text('A focused training space for strength, recovery, '
                   'nutrition and progress. Built to work offline.',
                   style: TextStyle(color: Color(0xFFABB6C5), height: 1.5)),
-                const SizedBox(height: 30),
+                const SizedBox(height: 28),
                 TextField(key: const Key('profileName'), controller: _name,
                   maxLength: 30, textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(
@@ -99,8 +102,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 const Center(child: Text('Device-local profile • No cloud account or password',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Color(0xFF8291A2), fontSize: 12))),
-              ])))))),
-      )),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
